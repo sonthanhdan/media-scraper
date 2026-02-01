@@ -5,7 +5,7 @@ import { prisma } from '../db.js';
 import { fetchHtml } from '../scraper/fetchHtml.js';
 import { extractMedia } from '../scraper/extract.js';
 
-type JobData = { jobId: string; targetId: string; url: string };
+type JobData = { jobId: string; url: string };
 
 async function incJobProgress(jobId: string, ok: boolean) {
   await prisma.scrapeJob.update({
@@ -36,10 +36,10 @@ async function incJobProgress(jobId: string, ok: boolean) {
 const worker = new Worker<JobData>(
   SCRAPE_QUEUE_NAME,
   async (job: Job<JobData>) => {
-    const { jobId, targetId, url } = job.data;
+    const { jobId, url } = job.data;
 
-    await prisma.scrapeTarget.update({
-      where: { id: targetId },
+    await prisma.scrapeTarget.updateMany({
+      where: { jobId, sourceUrl: url },
       data: { status: 'processing' }
     });
 
@@ -61,8 +61,8 @@ const worker = new Worker<JobData>(
         });
       }
 
-      await prisma.scrapeTarget.update({
-        where: { id: targetId },
+      await prisma.scrapeTarget.updateMany({
+        where: { jobId, sourceUrl: url },
         data: { status: 'done', error: null }
       });
 
@@ -71,8 +71,8 @@ const worker = new Worker<JobData>(
     } catch (e: any) {
       const msg = e?.message ? String(e.message) : 'unknown error';
 
-      await prisma.scrapeTarget.update({
-        where: { id: targetId },
+      await prisma.scrapeTarget.updateMany({
+        where: { jobId, sourceUrl: url },
         data: { status: 'failed', error: msg }
       });
 

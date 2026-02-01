@@ -211,7 +211,7 @@ Install k6:
 
 Run test:
 ```bash
-k6 run -e API_URL=http://localhost:8080/api/scrape test/k6-scrape.js
+k6 run -e API_URL=http://localhost:8080/api/scrape loadtest/k6-scrape.js
 ```
 
 This simulates high concurrent requests to `POST /api/scrape`. It measures how fast the system accepts and enqueues jobs, not how fast external sites are scraped.

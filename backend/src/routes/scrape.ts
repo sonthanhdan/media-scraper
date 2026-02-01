@@ -70,24 +70,18 @@ export async function scrapeRoutes(app: FastifyInstance) {
       select: { id: true }
     });
 
-    const targets = await prisma.scrapeTarget.createMany({
+    await prisma.scrapeTarget.createMany({
       data: uniqueUrls.map((u) => ({ jobId: job.id, sourceUrl: u, status: 'queued' })),
     });
 
-    // fetch inserted targets
-    const targetRows = await prisma.scrapeTarget.findMany({
-      where: { jobId: job.id },
-      select: { id: true, sourceUrl: true }
-    });
-
-    // enqueue each target
+    // enqueue each target (use jobId + url, avoid extra DB fetch for IDs)
     await scrapeQueue.addBulk(
-      targetRows.map((t) => ({
+      uniqueUrls.map((u) => ({
         name: SCRAPE_QUEUE_NAME,
-        data: { jobId: job.id, targetId: t.id, url: t.sourceUrl }
+        data: { jobId: job.id, url: u }
       }))
     );
 
-    return reply.send({ jobId: job.id, accepted: targetRows.length });
+    return reply.send({ jobId: job.id, accepted: uniqueUrls.length });
   });
 }
