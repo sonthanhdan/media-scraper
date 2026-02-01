@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum JobStatus {
+  queued
+  processing
+  done
+  failed
+}
+
+enum TargetStatus {
+  queued
+  processing
+  done
+  failed
+}
+
+enum MediaType {
+  image
+  video
+}
+
+model ScrapeJob {
+  id           String    @id @default(uuid())
+  createdAt    DateTime  @default(now())
+  status       JobStatus @default(queued)
+  totalTargets Int       @default(0)
+  doneTargets  Int       @default(0)
+  failedTargets Int      @default(0)
+
+  targets      ScrapeTarget[]
+  mediaItems   MediaItem[]
+}
+
+model ScrapeTarget {
+  id        String      @id @default(uuid())
+  jobId     String
+  sourceUrl String
+  status    TargetStatus @default(queued)
+  error     String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  job       ScrapeJob    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([status])
+}
+
+model MediaItem {
+  id        String    @id @default(uuid())
+  jobId     String
+  sourceUrl String
+  mediaUrl  String
+  type      MediaType
+  createdAt DateTime  @default(now())
+
+  job       ScrapeJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceUrl, mediaUrl])
+  @@index([type, createdAt(sort: Desc)])
+  @@index([sourceUrl])
+  @@index([mediaUrl])
+}

@@ -1,0 +1,29 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", sans-serif;
+  color: #2b2830;
+  background:
+    radial-gradient(circle at top left, rgba(232, 96, 42, 0.18), transparent 45%),
+    radial-gradient(circle at 20% 80%, rgba(44, 108, 120, 0.16), transparent 48%),
+    #f7f3ee;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  text-decoration: none;
+}
+
+button,
+select,
+input,
+textarea {
+  font-family: inherit;
+}
